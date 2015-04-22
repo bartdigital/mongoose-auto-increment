@@ -15,12 +15,12 @@ exports.initialize = function (connection) {
         model: { type: String, require: true },
         field: { type: String, require: true },
         count: { type: Number, default: 0 },
-        referenceField: { type: String, require: false, default: null },
+        referenceField: { type: String, default: null },
         reference: { type: mongoose.Schema.Types.Mixed, default: null }
       });
 
       // Create a unique index using the "field" and "model" fields.
-      counterSchema.index({ field: 1, model: 1, referenceField: 1, reference: 1 }, { unique: true, required: true, index: -1 });
+      counterSchema.index({ field: 1, model: 1, referenceField: 1, reference: 1 }, { required: true, index: -1 });
 
       // Create model using new schema.
       IdentityCounter = connection.model('IdentityCounter', counterSchema);
@@ -37,19 +37,13 @@ exports.plugin = function (schema, options) {
   // initialized properly so throw an error.
   if (!counterSchema || !IdentityCounter) throw new Error("mongoose-auto-increment has not been initialized");
 
-  var query = { model: settings.model, field: settings.field };
-  if(typeof settings.referenceField !== 'undefined' && settings.referenceField) {
-    query['referenceField'] = settings.referenceField;
-    query['reference'] = doc[settings.referenceField];
-  }
-
   // Default settings and plugin scope variables.
   var settings = {
     model: null, // The model to configure the plugin for.
     field: '_id', // The field the plugin should track.
     startAt: 0, // The number the count should start at.
     incrementBy: 1, // The number by which to increment the count each time.
-    unique: true // Should we create a unique index for the field
+    referenceField: null
   },
   fields = {}, // A hash of fields to add properties to in Mongoose.
   ready = false; // True if the counter collection has been updated and the document is ready to be saved.
@@ -68,13 +62,17 @@ exports.plugin = function (schema, options) {
   if (settings.model == null)
     throw new Error("model must be set");
 
+  var query = { model: settings.model, field: settings.field };
+
   // Add properties for field in schema.
   fields[settings.field] = {
     type: Number,
     require: true
   };
+
   if (settings.field !== '_id')
-    fields[settings.field].unique = settings.unique
+    fields[settings.field].unique = typeof options.referenceField == 'undefined' ? true : false;
+
   schema.add(fields);
 
   // Declare a function to get the next counter for the model/schema.
@@ -109,6 +107,11 @@ exports.plugin = function (schema, options) {
     // Get reference to the document being saved.
     var doc = this;
 
+    if(typeof settings.referenceField !== 'undefined' && settings.referenceField) {
+      query['referenceField'] = settings.referenceField;
+      query['reference'] = doc[settings.referenceField];
+    }
+
     // Only do this if it is a new document (see http://mongoosejs.com/docs/api.html#document_Document-isNew)
     if (doc.isNew) {
 
@@ -124,8 +127,7 @@ exports.plugin = function (schema, options) {
               data.reference = doc[settings.referenceField];
             }
             counter = new IdentityCounter(data);
-            counter.save(function (err) {
-              console.error(err);
+            counter.save(function (err, blah) {
               if(!err) {
                 ready = true;
                 save();
@@ -166,9 +168,6 @@ exports.plugin = function (schema, options) {
             );
 
           } else {
-
-            console.log(query);
-
             // Find the counter collection entry for this model and field and update it.
             IdentityCounter.findOneAndUpdate(
               // IdentityCounter documents are identified by the model and field that the plugin was invoked for.
