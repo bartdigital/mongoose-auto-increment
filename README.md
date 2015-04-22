@@ -81,7 +81,7 @@ Your first book document would have a `bookId` equal to `100`. Your second book 
 bookSchema.plugin(autoIncrement.plugin, {
     model: 'Book',
     field: 'bookId',
-    reference_field: 'userId',
+    referenceField: 'userId',
     startAt: 100,
     incrementBy: 100
 });
