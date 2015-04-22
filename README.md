@@ -73,8 +73,20 @@ bookSchema.plugin(autoIncrement.plugin, {
     incrementBy: 100
 });
 ````
-
 Your first book document would have a `bookId` equal to `100`. Your second book document would have a `bookId` equal to `200`, and so on.
+
+### Want to allow for many counters?
+
+````js
+bookSchema.plugin(autoIncrement.plugin, {
+    model: 'Book',
+    field: 'bookId',
+    reference_field: 'userId',
+    startAt: 100,
+    incrementBy: 100
+});
+````
+This will insert the `userId` for the owner of each book into its own counter, allowing to have a seperate book counter for each user.
 
 ### Want to know the next number coming up?
 
