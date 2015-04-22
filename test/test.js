@@ -21,10 +21,14 @@ after(function (done) {
 });
 
 afterEach(function (done) {
-  connection.model('User').collection.drop(function () {
-    delete connection.models.User;
-    connection.model('IdentityCounter').collection.drop(done);
-  });
+  if(typeof connection.models.User !== 'undefined'){
+    connection.model('User').collection.drop(function () {
+      delete connection.models.User;
+      connection.model('IdentityCounter').collection.drop(done);
+    });
+  } else {
+    done()
+  }
 });
 
 describe('mongoose-auto-increment', function () {
@@ -43,12 +47,8 @@ describe('mongoose-auto-increment', function () {
 
     // Act
     async.series({
-      user1: function (cb) {
-        user1.save(cb);
-      },
-      user2: function (cb) {
-        user2.save(cb);
-      }
+      user1: user1.save,
+      user2: user2.save
     }, assert);
 
     // Assert
@@ -61,7 +61,6 @@ describe('mongoose-auto-increment', function () {
 
   });
 
-
   it('should allow for multiple counters per model via a reference field (Test 1)', function(done) {
 
     // Arrange
@@ -73,35 +72,32 @@ describe('mongoose-auto-increment', function () {
 
     userSchema.plugin(autoIncrement.plugin, { model: 'User', field: 'userId', referenceField: 'uuid' });
 
-    var User = connection.model('User', userSchema),
-    user1 = new User({ name: 'Charlie', dept: 'Support', uuid: 'a' }),
-    user2 = new User({ name: 'Charles', dept: 'VP', uuid: 'a' }),
-    user3 = new User({ name: 'Charlene', dept: 'Marketing', uuid: 'b' });
+    var User = connection.model('User', userSchema);
+
+    var user1 = new User({ name: 'Charlie', dept: 'Support', uuid: 'a' });
+    var user2 = new User({ name: 'Charles', dept: 'VP', uuid: 'b' });
+    var user3 = new User({ name: 'Charlene', dept: 'Marketing', uuid: 'b' });
+    var user4 = new User({ name: 'Charlstone', dept: 'Marketing', uuid: 'a' });
 
     // Act
     async.series({
-      user1: function (cb) {
-        user1.save(cb);
-      },
-      user2: function (cb) {
-        user2.save(cb);
-      },
-      user3: function (cb) {
-        user3.save(cb);
-      }
+      user1: user1.save,
+      user2: user2.save,
+      user3: user3.save,
+      user4: user4.save
     }, assert);
 
     // Assert
     function assert(err, results) {
       should.not.exist(err);
       results.user1[0].should.have.property('userId', 0);
-      results.user2[0].should.have.property('userId', 1);
-      results.user3[0].should.have.property('userId', 0);
+      results.user2[0].should.have.property('userId', 0);
+      results.user4[0].should.have.property('userId', 1);
+      results.user4[0].should.have.property('userId', 1);
       done();
     }
 
   });
-
 
   it('should increment the specified field instead (Test 2)', function(done) {
 
