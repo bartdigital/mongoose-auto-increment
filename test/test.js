@@ -61,6 +61,48 @@ describe('mongoose-auto-increment', function () {
 
   });
 
+
+  it('should allow for multiple counters per model via a reference field (Test 1)', function(done) {
+
+    // Arrange
+    var userSchema = new mongoose.Schema({
+      name: String,
+      dept: String,
+      uuid: String
+    });
+
+    userSchema.plugin(autoIncrement.plugin, { model: 'User', field: 'userId', referenceField: 'uuid' });
+
+    var User = connection.model('User', userSchema),
+    user1 = new User({ name: 'Charlie', dept: 'Support', uuid: 'a' }),
+    user2 = new User({ name: 'Charles', dept: 'VP', uuid: 'a' }),
+    user3 = new User({ name: 'Charlene', dept: 'Marketing', uuid: 'b' });
+
+    // Act
+    async.series({
+      user1: function (cb) {
+        user1.save(cb);
+      },
+      user2: function (cb) {
+        user2.save(cb);
+      },
+      user3: function (cb) {
+        user3.save(cb);
+      }
+    }, assert);
+
+    // Assert
+    function assert(err, results) {
+      should.not.exist(err);
+      results.user1[0].should.have.property('userId', 0);
+      results.user2[0].should.have.property('userId', 1);
+      results.user3[0].should.have.property('userId', 0);
+      done();
+    }
+
+  });
+
+
   it('should increment the specified field instead (Test 2)', function(done) {
 
     // Arrange
