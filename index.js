@@ -15,12 +15,12 @@ exports.initialize = function (connection) {
         model: { type: String, require: true },
         field: { type: String, require: true },
         count: { type: Number, default: 0 },
-        reference_field: { type: String, require: false, default: null },
+        referenceField: { type: String, require: false, default: null },
         reference: { type: mongoose.Schema.Types.Mixed, default: null }
       });
 
       // Create a unique index using the "field" and "model" fields.
-      counterSchema.index({ field: 1, model: 1, reference_field: 1, reference: 1 }, { unique: true, required: true, index: -1 });
+      counterSchema.index({ field: 1, model: 1, referenceField: 1, reference: 1 }, { unique: true, required: true, index: -1 });
 
       // Create model using new schema.
       IdentityCounter = connection.model('IdentityCounter', counterSchema);
@@ -110,9 +110,9 @@ exports.plugin = function (schema, options) {
     if (doc.isNew) {
 
       var query = { model: settings.model, field: settings.field };
-      if(typeof settings.reference_field !== 'undefined' && settings.reference_field) {
-        query['reference_field'] = settings.reference_field;
-        query['reference'] = doc[settings.reference_field];
+      if(typeof settings.referenceField !== 'undefined' && settings.referenceField) {
+        query['referenceField'] = settings.referenceField;
+        query['reference'] = doc[settings.referenceField];
       }
       // Find the counter for this model and the relevant field.
       IdentityCounter.findOne(
@@ -121,9 +121,9 @@ exports.plugin = function (schema, options) {
           if (!counter) {
             // If no counter exists then create one and save it.
             var data = { model: settings.model, field: settings.field, count: settings.startAt - settings.incrementBy };
-            if(typeof settings.reference_field !== 'undefined' && settings.reference_field){
-              data.reference_field = settings.reference_field;
-              data.reference = doc[settings.reference_field];
+            if(typeof settings.referenceField !== 'undefined' && settings.referenceField){
+              data.referenceField = settings.referenceField;
+              data.reference = doc[settings.referenceField];
             }
             counter = new IdentityCounter(data);
             counter.save(function (err) {
