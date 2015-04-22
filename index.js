@@ -37,6 +37,12 @@ exports.plugin = function (schema, options) {
   // initialized properly so throw an error.
   if (!counterSchema || !IdentityCounter) throw new Error("mongoose-auto-increment has not been initialized");
 
+  var query = { model: settings.model, field: settings.field };
+  if(typeof settings.referenceField !== 'undefined' && settings.referenceField) {
+    query['referenceField'] = settings.referenceField;
+    query['reference'] = doc[settings.referenceField];
+  }
+
   // Default settings and plugin scope variables.
   var settings = {
     model: null, // The model to configure the plugin for.
@@ -73,10 +79,7 @@ exports.plugin = function (schema, options) {
 
   // Declare a function to get the next counter for the model/schema.
   var nextCount = function (callback) {
-    IdentityCounter.findOne({
-      model: settings.model,
-      field: settings.field
-    }, function (err, counter) {
+    IdentityCounter.findOne(query, function (err, counter) {
       if (err) return callback(err);
       callback(null, counter === null ? settings.startAt : counter.count + settings.incrementBy);
     });
@@ -88,7 +91,7 @@ exports.plugin = function (schema, options) {
   // Declare a function to reset counter at the start value - increment value.
   var resetCount = function (callback) {
     IdentityCounter.findOneAndUpdate(
-      { model: settings.model, field: settings.field },
+      query,
       { count: settings.startAt - settings.incrementBy },
       { new: true }, // new: true specifies that the callback should get the updated counter.
       function (err) {
@@ -109,11 +112,6 @@ exports.plugin = function (schema, options) {
     // Only do this if it is a new document (see http://mongoosejs.com/docs/api.html#document_Document-isNew)
     if (doc.isNew) {
 
-      var query = { model: settings.model, field: settings.field };
-      if(typeof settings.referenceField !== 'undefined' && settings.referenceField) {
-        query['referenceField'] = settings.referenceField;
-        query['reference'] = doc[settings.referenceField];
-      }
       // Find the counter for this model and the relevant field.
       IdentityCounter.findOne(
         query,
