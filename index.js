@@ -87,14 +87,15 @@ exports.plugin = function (schema, options) {
   schema.static('nextCount', nextCount);
 
   // Declare a function to reset counter at the start value - increment value.
-  var resetCount = function (callback) {
+  var resetCount = function (count, callback) {
+    count = count || settings.startAt;
     IdentityCounter.findOneAndUpdate(
       query,
-      { count: settings.startAt - settings.incrementBy },
+      { count: count - settings.incrementBy },
       { new: true }, // new: true specifies that the callback should get the updated counter.
       function (err) {
         if (err) return callback(err);
-        callback(null, settings.startAt);
+        callback(null, count);
       }
     );
   };
