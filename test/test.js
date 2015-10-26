@@ -92,7 +92,7 @@ describe('mongoose-auto-increment', function () {
       should.not.exist(err);
       results.user1[0].should.have.property('userId', 0);
       results.user2[0].should.have.property('userId', 0);
-      results.user4[0].should.have.property('userId', 1);
+      results.user3[0].should.have.property('userId', 1);
       results.user4[0].should.have.property('userId', 1);
       done();
     }

@@ -88,7 +88,10 @@ exports.plugin = function (schema, options) {
 
   // Declare a function to reset counter at the start value - increment value.
   var resetCount = function (count, callback) {
-    count = count || settings.startAt;
+    if(count.constructor.name == 'Function') {
+      callback = count;
+      count = settings.startAt || 0;
+    }
     IdentityCounter.findOneAndUpdate(
       query,
       { count: count - settings.incrementBy },
