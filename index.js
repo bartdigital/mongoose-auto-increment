@@ -39,6 +39,7 @@ exports.plugin = function (schema, options) {
 
   // Default settings and plugin scope variables.
   var settings = {
+    docType: "doc",
     hook: 'save',
     hookValidation: false,
     model: null, // The model to configure the plugin for.
@@ -112,6 +113,8 @@ exports.plugin = function (schema, options) {
   schema.pre(settings.hook, function (next) {
     // Get reference to the document being saved.
     var doc = this;
+
+    doc = settings.docType === "query" : doc._update : doc;
 
     if(typeof settings.referenceField !== 'undefined' && settings.referenceField) {
       query['referenceField'] = settings.referenceField;
