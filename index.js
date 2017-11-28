@@ -199,6 +199,8 @@ exports.plugin = function (schema, options) {
           else
             setTimeout(save, 5);
         };
+      } else {
+        next();
       }
     }
     // If the document does not have the field we're interested in or that field isn't a number AND the user did
