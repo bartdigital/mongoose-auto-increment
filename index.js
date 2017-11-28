@@ -122,7 +122,7 @@ exports.plugin = function (schema, options) {
     }
 
     // Only do this if it is a new document (see http://mongoosejs.com/docs/api.html#document_Document-isNew)
-    if(!settings.hookValidation && doc.isNew || (settings.hookValidation && settings.hookValidation(doc))){
+    if((!settings.hookValidation && doc.isNew) || (settings.hookValidation && settings.hookValidation(doc))){
         // Find the counter for this model and the relevant field.
         IdentityCounter.findOne(
           query,
