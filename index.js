@@ -114,7 +114,7 @@ exports.plugin = function (schema, options) {
     // Get reference to the document being saved.
     var doc = this;
 
-    doc = settings.docType === "query" : doc._update : doc;
+    doc = settings.docType === "query" ? doc._update : doc;
 
     if(typeof settings.referenceField !== 'undefined' && settings.referenceField) {
       query['referenceField'] = settings.referenceField;
